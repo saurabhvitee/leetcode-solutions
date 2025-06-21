@@ -42,24 +42,27 @@ def fetch_last_submission(slug):
     }
 
     url = "https://leetcode.com/graphql"
-    res = requests.post(url, json=query, headers=HEADERS)
-    if res.status_code == 200:
-        try:
-            data = res.json()
-            submissions = data["data"]["recentAcSubmissionList"]
-            # Filter by slug
-            for sub in submissions:
-                if sub["titleSlug"] == slug:
-                    return sub
-            print(f"[⚠️] No recent accepted submission found for {slug}")
-            return None
-        except Exception as e:
-            print(f"[⚠️] Error parsing submission for {slug}: {e}")
-            return None
-    else:
-        print(f"[❌] Failed to fetch submission for {slug}. Status code: {res.status_code}")
-    return None
 
+    try:
+        res = requests.post(url, json=query, headers=HEADERS)
+
+        if res.status_code != 200:
+            print(f"[❌] HTTP {res.status_code} — {res.reason}")
+            print(f"[📩] Response Text: {res.text}")
+            return None
+
+        data = res.json()
+        submissions = data["data"]["recentAcSubmissionList"]
+
+        for sub in submissions:
+            if sub["titleSlug"] == slug:
+                return sub
+
+        print(f"[⚠️] No recent submission found for: {slug}")
+        return None
+    except Exception as e:
+        print(f"[💥] Exception occurred: {e}")
+        return None
 
 def sanitize_filename(name):
     return "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in name)
