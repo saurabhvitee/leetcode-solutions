@@ -27,8 +27,8 @@ def get_solved_problems():
 def fetch_last_submission(slug):
     query = {
         "query": """
-        query recentAcSubmissions($slug: String!) {
-          recentAcSubmissionList(username: "behindyouu", limit: 1) {
+        query {
+          recentAcSubmissionList(username: "behindyouu", limit: 20) {
             title
             titleSlug
             timestamp
@@ -38,7 +38,7 @@ def fetch_last_submission(slug):
           }
         }
         """,
-        "variables": {"slug": slug}
+        "variables": {}
     }
 
     url = "https://leetcode.com/graphql"
@@ -46,13 +46,20 @@ def fetch_last_submission(slug):
     if res.status_code == 200:
         try:
             data = res.json()
-            return data["data"]["recentAcSubmissionList"][0]
+            submissions = data["data"]["recentAcSubmissionList"]
+            # Filter by slug
+            for sub in submissions:
+                if sub["titleSlug"] == slug:
+                    return sub
+            print(f"[⚠️] No recent accepted submission found for {slug}")
+            return None
         except Exception as e:
-            print(f"[⚠️] No submission found for slug: {slug} | Error: {e}")
+            print(f"[⚠️] Error parsing submission for {slug}: {e}")
             return None
     else:
         print(f"[❌] Failed to fetch submission for {slug}. Status code: {res.status_code}")
     return None
+
 
 def sanitize_filename(name):
     return "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in name)
