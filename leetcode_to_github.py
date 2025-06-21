@@ -27,7 +27,7 @@ def get_solved_problems():
 def fetch_last_submission(slug):
     query = {
         "query": """
-        query submissionList($slug: String!) {
+        query recentAcSubmissions($slug: String!) {
           recentAcSubmissionList(username: "behindyouu", limit: 1) {
             title
             titleSlug
@@ -41,14 +41,17 @@ def fetch_last_submission(slug):
         "variables": {"slug": slug}
     }
 
-    url = f"https://leetcode.com/graphql"
+    url = "https://leetcode.com/graphql"
     res = requests.post(url, json=query, headers=HEADERS)
     if res.status_code == 200:
         try:
             data = res.json()
             return data["data"]["recentAcSubmissionList"][0]
-        except:
+        except Exception as e:
+            print(f"[⚠️] No submission found for slug: {slug} | Error: {e}")
             return None
+    else:
+        print(f"[❌] Failed to fetch submission for {slug}. Status code: {res.status_code}")
     return None
 
 def sanitize_filename(name):
@@ -58,14 +61,19 @@ def save_code(submission):
     lang = submission["lang"]
     ext = LANG_MAP.get(lang)
     if not ext:
+        print(f"[⏩] Skipping unsupported language: {lang}")
         return None
 
     folder = os.path.join(GITHUB_REPO_PATH, lang)
     os.makedirs(folder, exist_ok=True)
+
     title = sanitize_filename(submission["titleSlug"])
     path = os.path.join(folder, f"{title}{ext}")
+
     with open(path, "w") as f:
         f.write(submission["code"])
+
+    print(f"[💾] Saved: {path}")
     return path
 
 def push_to_github(commit_msg="Auto commit LeetCode sync"):
@@ -75,19 +83,28 @@ def push_to_github(commit_msg="Auto commit LeetCode sync"):
         repo.index.commit(commit_msg)
         origin = repo.remote(name="origin")
         origin.push()
+        print("[🚀] Code pushed to GitHub")
+    else:
+        print("[✅] No changes to commit")
 
 def main():
     print("🔍 Fetching solved problems...")
     problems = get_solved_problems()
     print(f"✅ Found {len(problems)} accepted problems")
 
-    for prob in tqdm(problems[:25]):  # use 25 for testing
+    for prob in tqdm(problems[:25], desc="⬇️ Downloading Solutions"):
         slug = prob["stat"]["question__title_slug"]
+        print(f"➡️ Fetching submission for: {slug}")
         submission = fetch_last_submission(slug)
-        if submission and submission.get("code"):
-            save_code(submission)
 
-    print("✅ Code saved. Pushing to GitHub...")
+        if submission and submission.get("code"):
+            saved = save_code(submission)
+            if not saved:
+                print(f"[⚠️] Failed to save code for {slug}")
+        else:
+            print(f"[⚠️] No valid code found for {slug}")
+
+    print("✅ All codes processed. Pushing to GitHub...")
     push_to_github()
 
 if __name__ == "__main__":
