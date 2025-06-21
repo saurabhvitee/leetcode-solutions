@@ -25,7 +25,7 @@ def get_solved_problems():
     return [p for p in all_problems if p["status"] == "ac"]
 
 def fetch_last_submission(slug):
-    query = {
+    graphql_query = {
         "query": """
         query {
           recentAcSubmissionList(username: "behindyouu", limit: 20) {
@@ -34,7 +34,7 @@ def fetch_last_submission(slug):
             timestamp
             statusDisplay
             lang
-            code
+            id
           }
         }
         """,
@@ -42,27 +42,34 @@ def fetch_last_submission(slug):
     }
 
     url = "https://leetcode.com/graphql"
+    res = requests.post(url, json=graphql_query, headers=HEADERS)
 
-    try:
-        res = requests.post(url, json=query, headers=HEADERS)
+    if res.status_code != 200:
+        print(f"[❌] GraphQL failed. HTTP {res.status_code}")
+        print(res.text)
+        return None
 
-        if res.status_code != 200:
-            print(f"[❌] HTTP {res.status_code} — {res.reason}")
-            print(f"[📩] Response Text: {res.text}")
+    submissions = res.json()["data"]["recentAcSubmissionList"]
+
+    for sub in submissions:
+        if sub["titleSlug"] == slug:
+            submission_id = sub["id"]
+            code_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
+            code_res = requests.get(code_url, headers=HEADERS)
+            if code_res.status_code == 200:
+                code_data = code_res.json()
+                if "code" in code_data:
+                    sub["code"] = code_data["code"]
+                    return sub
+                else:
+                    print(f"[⚠️] No code found in check/ response for {slug}")
+            else:
+                print(f"[❌] Failed to fetch code from /check/. Status: {code_res.status_code}")
             return None
 
-        data = res.json()
-        submissions = data["data"]["recentAcSubmissionList"]
+    print(f"[⚠️] No recent submission found for: {slug}")
+    return None
 
-        for sub in submissions:
-            if sub["titleSlug"] == slug:
-                return sub
-
-        print(f"[⚠️] No recent submission found for: {slug}")
-        return None
-    except Exception as e:
-        print(f"[💥] Exception occurred: {e}")
-        return None
 
 def sanitize_filename(name):
     return "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in name)
