@@ -80,9 +80,9 @@ python leetcode_downloader.py --qnums 1 121 200
 
 This will only download submissions for:
 
-- 1. Two Sum
-- 121. Best Time to Buy and Sell Stock
-- 200. Number of Islands
+- `1.` [Two Sum](https://leetcode.com/problems/two-sum/)
+- `121.` [Best Time to Buy and Sell Stock](https://leetcode.com/problems/best-time-to-buy-and-sell-stock/)
+- `200.` [Number of Islands](https://leetcode.com/problems/number-of-islands/)
 
 ---
 
