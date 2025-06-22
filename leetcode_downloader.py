@@ -3,6 +3,7 @@ import requests
 import time
 import re
 import html
+import argparse 
 from collections import defaultdict
 
 LEETCODE_SESSION = os.getenv("LEETCODE_SESSION")
@@ -29,21 +30,27 @@ GRAPHQL_URL = "https://leetcode.com/graphql"
 def get_difficulty_map():
     res = session.get("https://leetcode.com/api/problems/all/")
     mapping = {}
+    qid_to_slug = {}
     if res.status_code != 200:
-        return mapping
+        return mapping, qid_to_slug
     for q in res.json().get("stat_status_pairs", []):
         slug = q['stat']['question__title_slug']
         level = q['difficulty']['level']
+        qid = q['stat']['frontend_question_id']
         diff = {1: "Easy", 2: "Medium", 3: "Hard"}.get(level, "Unknown")
         mapping[slug] = diff
-    return mapping
+        qid_to_slug[qid] = slug
+    return mapping, qid_to_slug
 
-
-def get_all_accepted_submissions():
+def get_all_accepted_submissions(qnums=None, qid_to_slug=None):
     all_subs = []
     offset = 0
     limit = 20
     print("📥 Fetching accepted submissions...")
+
+    qnum_slugs = set()
+    if qnums and qid_to_slug:
+        qnum_slugs = {qid_to_slug[q] for q in qnums if q in qid_to_slug}
 
     while True:
         query = {
@@ -79,7 +86,8 @@ def get_all_accepted_submissions():
         chunk = data['submissions']
         for sub in chunk:
             if sub['statusDisplay'] == 'Accepted':
-                all_subs.append(sub)
+                if not qnum_slugs or sub['titleSlug'] in qnum_slugs:
+                    all_subs.append(sub)
 
         if not data['hasNext']:
             break
@@ -89,7 +97,6 @@ def get_all_accepted_submissions():
 
     print(f"✅ Total accepted submissions found: {len(all_subs)}")
     return all_subs
-
 
 def get_submission_code(submission_id, slug):
     url = f"https://leetcode.com/submissions/detail/{submission_id}/"
@@ -159,9 +166,13 @@ def save_submissions_with_versions(subs, difficulty_map):
 
     print("🎉 Done! All new submissions saved.")
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Download accepted LeetCode submissions.")
+    parser.add_argument("--qnums", nargs="*", type=int, help="List of LeetCode question numbers to fetch.")
+    return parser.parse_args()
 
-# --- MAIN ---
 if __name__ == "__main__":
-    difficulty_map = get_difficulty_map()
-    submissions = get_all_accepted_submissions()
+    args = parse_args()
+    difficulty_map, qid_to_slug = get_difficulty_map()
+    submissions = get_all_accepted_submissions(qnums=args.qnums, qid_to_slug=qid_to_slug)
     save_submissions_with_versions(submissions, difficulty_map)
