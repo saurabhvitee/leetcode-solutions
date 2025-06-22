@@ -6,8 +6,8 @@ import html
 from collections import defaultdict
 
 # --- Step 1: Replace your actual cookies below ---
-LEETCODE_SESSION = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJfYXV0aF91c2VyX2lkIjoiMjgyMTg1NiIsIl9hdXRoX3VzZXJfYmFja2VuZCI6ImFsbGF1dGguYWNjb3VudC5hdXRoX2JhY2tlbmRzLkF1dGhlbnRpY2F0aW9uQmFja2VuZCIsIl9hdXRoX3VzZXJfaGFzaCI6ImU0NjVmYjkzNjk3MjVmY2ZiYzRmMjZjNGVlNWEyZTNhNzU0ZjgyOTYxNjA0ZjVkMGIyMGJmNGY1MTk1MGFiOWMiLCJzZXNzaW9uX3V1aWQiOiIwMzY1MGNjYSIsImlkIjoyODIxODU2LCJlbWFpbCI6InNhdXJhYmhuYWhhcml5YThAZ21haWwuY29tIiwidXNlcm5hbWUiOiJiZWhpbmR5b3V1IiwidXNlcl9zbHVnIjoiYmVoaW5keW91dSIsImF2YXRhciI6Imh0dHBzOi8vYXNzZXRzLmxlZXRjb2RlLmNvbS91c2Vycy9iZWhpbmR5b3V1L2F2YXRhcl8xNzQ4MDc5MTYyLnBuZyIsInJlZnJlc2hlZF9hdCI6MTc1MDU0MzgxNSwiaXAiOiIyNDA1OjIwMTo1YzM5OmUwMTE6YWNiNDo4ZDQ2OmVhZTk6MWQ3OCIsImlkZW50aXR5IjoiNWIyYmE0OTJkYTFiZjhiODhmNWY3MWIxNjE1NzU4MjAiLCJkZXZpY2Vfd2l0aF9pcCI6WyI2MzI3NTJlNmE1MzQ1MGJlMDExYzY4MzA4M2VjNzAxOCIsIjI0MDU6MjAxOjVjMzk6ZTAxMTphY2I0OjhkNDY6ZWFlOToxZDc4Il19.UsZJti729-p3yx8K-zOEa02y1EKVbvYHqhujnC43QrE'
-CSRFTOKEN = 'wTaBrXXuvfaUpDv7NWPxrZS6ZZZqdgSduIO0r453rnREMKCkC3ivEIe0nIYrOraB'
+LEETCODE_SESSION = ''
+CSRFTOKEN = ''
 
 headers = {
     'Cookie': f'LEETCODE_SESSION={LEETCODE_SESSION}; csrftoken={CSRFTOKEN}',
@@ -115,8 +115,7 @@ def get_extension(lang):
 
 
 def save_submissions_with_versions(subs, difficulty_map):
-    base_dir = "leetcode_solutions"
-    os.makedirs(base_dir, exist_ok=True)
+    base_dir = "." # current directory 
 
     grouped_subs = defaultdict(list)
     for sub in subs:
