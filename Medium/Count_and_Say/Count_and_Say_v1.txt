@@ -1,0 +1,11 @@
+class Solution:
+    def countAndSay(self, n: int) -> str:
+        if n == 1: return '1'
+        s = self.countAndSay(n-1) + '0'
+        ans ,count = '' , 0
+        for i in range(1,len(s)):
+            count += 1
+            if s[i] != s[i-1]:
+                ans += str(count) + s[i-1]
+                count = 0
+        return ans
