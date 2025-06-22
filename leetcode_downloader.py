@@ -5,9 +5,12 @@ import re
 import html
 from collections import defaultdict
 
-# --- Step 1: Replace your actual cookies below ---
-LEETCODE_SESSION = ''
-CSRFTOKEN = ''
+LEETCODE_SESSION = os.getenv("LEETCODE_SESSION")
+CSRFTOKEN = os.getenv("CSRFTOKEN")
+
+if not LEETCODE_SESSION or not CSRFTOKEN:
+    raise ValueError("❌ Please set the LEETCODE_SESSION and CSRFTOKEN environment variables.")
+
 
 headers = {
     'Cookie': f'LEETCODE_SESSION={LEETCODE_SESSION}; csrftoken={CSRFTOKEN}',
